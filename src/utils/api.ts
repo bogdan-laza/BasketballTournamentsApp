@@ -21,41 +21,51 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-    (response)=>{
+    (response) => {
         return response;
     },
 
-    async (error)=>{
-        const originalRequest=error.config;
+    async (error) => {
+        const originalRequest = error.config;
 
-        if(error.response?.status===401 && !originalRequest._retry){
-            originalRequest._retry=true;
+        const isAuthEndpoint = originalRequest?.url?.includes('login') || 
+                               originalRequest?.url?.includes('Auth/refresh');
 
-            try{
-                const refreshToken=localStorage.getItem("refreshToken");
-                const refreshResponse=await axios.post('http://localhost:5265/api/Auth/refresh', {
-                    refreshToken:refreshToken
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+            originalRequest._retry = true;
+
+            try {
+                const refreshToken = localStorage.getItem("refreshToken");
+
+                if (!refreshToken) {
+                    return Promise.reject(error);
+                }
+
+                const refreshResponse = await axios.post('http://localhost:5265/api/Auth/refresh', {
+                    refreshToken: refreshToken
                 });
 
-                const newAccessToken=refreshResponse.data.accessToken;
-                const newRefreshToken=refreshResponse.data.refreshToken;
+                const newAccessToken = refreshResponse.data.accessToken;
+                const newRefreshToken = refreshResponse.data.refreshToken;
 
                 localStorage.setItem("token", newAccessToken);
                 localStorage.setItem("refreshToken", newRefreshToken);
 
-                originalRequest.headers['Authorization']=`Bearer ${newAccessToken}`;
+                originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
-            } catch(refreshError){
+            } catch (refreshError) {
                 console.error("Session expired. Please log in again.");
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
 
-                window.location.href='/login';
+                window.location.href = '/login';
                 return Promise.reject(refreshError);
             }
         }
+
         return Promise.reject(error);
     }
 );
+
 
 export default api;

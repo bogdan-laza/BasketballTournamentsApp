@@ -12,6 +12,7 @@ import MyProfile from "./MyProfile";
 import ChangePhoto from "./ChangePhoto";
 import AccountSettings from "./AccountSettings";
 import Community from "./Community";
+import UserProfile from "./UserProfile";
 
 function App(){
   return(
@@ -31,6 +32,7 @@ function App(){
         <Route path="/myprofile/change-photo" element={<ChangePhoto />} />
         <Route path="/account" element={<AccountSettings />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/profile/:userId" element={<UserProfile />} />
       </Routes>
     </>
   );

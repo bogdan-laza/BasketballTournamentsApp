@@ -334,7 +334,7 @@ function MyProfile(){
 
                                 <div className="absolute top-0 left-full pl-6 flex flex-col w-max gap-5">
                                     <span className="text-md text-white font-extrabold tracking-wide mb-3 whitespace-nowrap">
-                                        You've played <span className="text-orange-500 ml-1">{timesPlayedThisWeek}</span> times this week:
+                                        You've played <span className="text-orange-500 ml-1">{timesPlayedThisWeek}</span> {timesPlayedThisWeek===1 ? " time" : " times"} this week:
                                     </span>
                                     
                                     <div className="flex flex-row items-center gap-4">

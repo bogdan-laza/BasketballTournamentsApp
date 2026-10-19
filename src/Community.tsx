@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import api from "./utils/api";
 import romaniaData from "./utils/romania.json";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from './AuthContext';
 
 const calculateAge = (birthString: string | null) => {
     if (!birthString) return "N/A";
@@ -41,6 +43,8 @@ const Community = () => {
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
     const locationWrapperRef = useRef<HTMLDivElement>(null);
 
+    const navigate=useNavigate();
+
     const allLocations = useMemo(() => {
         const locs = [];
         for (const [county, cities] of Object.entries(romaniaData as Record<string, string[]>)) {
@@ -74,6 +78,19 @@ const Community = () => {
         return results;
     }, [locationInput, allLocations]);
 
+    const { token } = useAuth();
+
+    const currentUserId = useMemo(() => {
+        if (!token) return null;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const id = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload.nameid || payload.sub;
+            return id ? Number(id) : null;
+        } catch {
+            return null;
+        }
+    }, [token]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (locationWrapperRef.current && !locationWrapperRef.current.contains(event.target as Node)) {
@@ -105,6 +122,7 @@ const Community = () => {
                         page: 1,
                         pageSize: 50,
                         searchTerm: debouncedTerm,
+                        excludeUserId: currentUserId,
                     }
                 });
 
@@ -119,7 +137,7 @@ const Community = () => {
         };
 
         fetchUsers();
-    }, [debouncedTerm]);
+    }, [debouncedTerm, currentUserId]);
 
     useEffect(() => {
         const fetchAllPlayers = async () => {
@@ -134,7 +152,8 @@ const Community = () => {
                         sortOrder,
                         county: selectedCounty,
                         city: selectedCity,
-                        playerLevel: levelFilter ? Number(levelFilter) : null
+                        playerLevel: levelFilter ? Number(levelFilter) : null,
+                        excludeUserId: currentUserId,
                     }
                 });
                 setPlayers(response.data.items || []);
@@ -147,7 +166,7 @@ const Community = () => {
             }
         };
         fetchAllPlayers();
-    }, [page, sortOption, selectedCounty, selectedCity, levelFilter]);
+    }, [page, sortOption, selectedCounty, selectedCity, levelFilter, currentUserId]);
 
     const renderPagination = () => {
         if (totalPages <= 1) return null;
@@ -248,6 +267,7 @@ const Community = () => {
                                         {users.map((user, index) => (
                                             <div 
                                                 key={user.userId || index}
+                                                onClick={() => navigate(`/profile/${user.userId}`, { state: { user } })}
                                                 className="flex items-center gap-4 px-6 py-4 border border-transparent hover:border-orange-500/50 cursor-pointer transition-all duration-200"
                                             >
                                                 <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden bg-slate-700 border border-slate-600">
@@ -373,7 +393,10 @@ const Community = () => {
                             <div className="py-12 text-center text-slate-400 font-bold animate-pulse">Loading players...</div>
                         ) : players.length > 0 ? (
                             players.map((user, idx) => (
-                                <div key={user.userId || idx} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-800/30 border border-transparent rounded-2xl hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-200 group items-center cursor-pointer">
+                                <div key={user.userId || idx}
+                                onClick={() => navigate(`/profile/${user.userId}`, { state: { user } })}
+                                className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-800/30 border border-transparent rounded-2xl hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-200 group items-center cursor-pointer"
+                                >
                                     
                                     <div className="md:col-span-6 flex items-center gap-4 min-w-0">
                                        <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden bg-slate-700 border border-slate-600">
