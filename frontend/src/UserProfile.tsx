@@ -126,6 +126,11 @@ const UserProfile = () => {
     const [user, setUser] = useState<User | null>(location.state?.user || null);
     const [stats, setStats] = useState<ReviewStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showToast, setShowToast] = useState(false);
+
+    const [friendStatus, setFriendStatus] = useState<'NONE' | 'PENDING_SENT' | 'PENDING_RECEIVED' | 'FRIENDS'>(
+        location.state?.friendStatus || 'NONE'
+    );
 
     if (!user) {
         return (
@@ -137,6 +142,12 @@ const UserProfile = () => {
             </div>
         );
     }
+
+    const handleAddFriend = () => {
+        setFriendStatus('PENDING_SENT');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 4000);
+    };
 
     useEffect(() => {
         if (user?.userId) {
@@ -205,6 +216,19 @@ const UserProfile = () => {
         <div className="min-h-screen bg-slate-900 p-8">
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col items-center justify-center mb-12">
+                    {showToast && (
+                        <div className="fixed bottom-6 right-6 min-w-[360px] bg-slate-800 border border-orange-500 text-white px-7 py-5 rounded-2xl shadow-2xl flex items-center gap-4 z-50 transition-all duration-300 ease-out animate-in fade-in slide-in-from-bottom-4">
+                            <div className="p-3 bg-orange-500/20 text-orange-500 rounded-xl flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="font-bold text-base">Friend request sent!</p>
+                                <p className="text-sm text-slate-400">Waiting for {user.firstName || user.username}'s approval.</p>
+                            </div>
+                        </div>
+                    )}
                     
                     <div className="relative h-40 w-40 rounded-full shadow-xl ring-4 ring-slate-800">
                         {user.profileImageUrl ? (
@@ -248,12 +272,41 @@ const UserProfile = () => {
                                 </div>
 
                                 <div className="flex flex-row items-center justify-center gap-4 w-full">
-                                    <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-2xl font-bold transition-colors shadow-lg">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                        </svg>
-                                        Add Friend
-                                    </button>
+                                    {friendStatus === 'NONE' && (
+                                        <button 
+                                            onClick={handleAddFriend}
+                                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-2xl font-bold transition-colors shadow-lg"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                            </svg>
+                                            Add Friend
+                                        </button>
+                                    )}
+
+                                    {friendStatus === 'PENDING_SENT' && (
+                                        <button 
+                                            onClick={() => { /* TODO: Cancel request logic */ }}
+                                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-2xl font-bold transition-colors shadow-lg"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Cancel Request
+                                        </button>
+                                    )}
+
+                                    {friendStatus === 'PENDING_RECEIVED' && (
+                                        <button 
+                                            onClick={() => { /* TODO: Accept request logic */ }}
+                                            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-2xl font-bold transition-colors shadow-lg"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Accept Request
+                                        </button>
+                                    )}
 
                                     <button className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-2.5 rounded-2xl font-bold transition-colors shadow-lg border border-slate-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

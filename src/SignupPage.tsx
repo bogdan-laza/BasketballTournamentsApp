@@ -333,7 +333,7 @@ function SignupPage(){
                                     {user.city ? (
                                         <button 
                                             type="button"
-                                            onClick={() => setUser({ ...user, city: "" })} // Clear just the city
+                                            onClick={() => setUser({ ...user, city: "" })} 
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1"
                                             title="Clear city"
                                         >

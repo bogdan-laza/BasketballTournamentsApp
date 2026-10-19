@@ -15,12 +15,31 @@ interface User{
     profileImageUrl?:string;
 }
 
+export interface NotificationSender {
+    userId: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    playerLevel?: number;
+    city?: string;
+    county?: string;
+}
+
+export interface Notification {
+    id: number;
+    type: string;
+    sender: NotificationSender;
+    createdAt: string;
+    isRead: boolean;
+}
+
 function Navbar(){
     const [isDropdownOpen, setIsDropdownOpen]=useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [currentUser, setCurrentUser]=useState<User | null>(null);
 
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     
     const dropdownRef=useRef<HTMLDivElement>(null);
     const notificationsRef = useRef<HTMLDivElement>(null);
@@ -139,11 +158,72 @@ function Navbar(){
                                         <h3 className="text-white font-bold text-xl">Notifications</h3>
                                     </div>
                                     
-                                    <div className="p-6 text-center text-slate-400 text-sm bg-slate-800">
+                                    <div className="max-h-96 overflow-y-auto bg-slate-800 divide-y divide-slate-700/50">
                                         {notifications.length === 0 ? (
-                                            <p>You don't have any notifications.</p>
+                                            <div className="p-6 text-center text-slate-400 text-sm">
+                                                <p>You don't have any notifications.</p>
+                                            </div>
                                         ) : (
-                                            <p>...</p> // TODO when i have actual notifications
+                                            notifications.map((notification) => (
+                                                <div 
+                                                    key={notification.id}
+                                                    onClick={() => {
+                                                        setIsNotificationsOpen(false);
+                                                        navigate(`/profile/${notification.sender.userId}`, { 
+                                                            state: { 
+                                                                user: notification.sender, 
+                                                                friendStatus: 'PENDING_RECEIVED' 
+                                                            } 
+                                                        });
+                                                    }}
+                                                    className="p-4 flex items-start gap-3 hover:bg-slate-700/50 cursor-pointer transition-colors"
+                                                >
+                                                    <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-slate-700 border border-slate-600">
+                                                        {notification.sender.profileImageUrl ? (
+                                                            <img 
+                                                                src={notification.sender.profileImageUrl} 
+                                                                alt="Sender" 
+                                                                className="w-full h-full object-cover" 
+                                                            />
+                                                        ) : (
+                                                            <div className="flex items-center justify-center h-full w-full bg-slate-600 text-white font-bold text-xs">
+                                                                {notification.sender.firstName?.[0]}{notification.sender.lastName?.[0]}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-slate-200 leading-snug">
+                                                            <span className="font-bold text-white">
+                                                                {notification.sender.firstName} {notification.sender.lastName}
+                                                            </span>{" "}
+                                                            sent you a friend request.
+                                                        </p>
+
+                                                        <div className="flex items-center gap-2 mt-3">
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation(); 
+                                                                    /* TODO: Accept logic */
+                                                                }}
+                                                                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors shadow"
+                                                            >
+                                                                Accept
+                                                            </button>
+
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation(); 
+                                                                    /* TODO: Reject logic later */
+                                                                }}
+                                                                className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-bold rounded-lg border border-slate-600 transition-colors"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
                                         )}
                                     </div>
 
