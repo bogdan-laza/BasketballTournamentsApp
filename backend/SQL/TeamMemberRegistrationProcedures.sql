@@ -64,4 +64,3 @@ BEGIN
     WHERE UserId=@UserId AND TeamId=@TeamId
 END
 GO
-
